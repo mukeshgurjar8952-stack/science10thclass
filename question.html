@@ -196,78 +196,16 @@
 `;
 
     // 2. Yahan saare sahi answers likhein (Sirf a, b, c ya d likhna hai)
-    // Format: "Question Number" : "Sahi Option",
     const mcqAnswers = {
-        "1": "a",
-        "2": "c",
-        "3": "c",
-        "4": "a", 
-        "5": "",
-        "6": "",
-        "7": "",
-        "8": "",
-        "9": "",
-        "10": "",
-        "11": "",
-        "12": "",
-        "13": "",
-        "14": "",
-        "15": "",
-        "16": "",
-        "17": "",
-        "18": "",
-        "19": "",
-        "20": "",
-        "21": "",
-        "22": "",
-        "23": "",
-        "24": "",
-        "25": "",
-        "26": "",
-        "27": "",
-        "28": "",
-        "29": "",
-        "30": "",
-        "31": "",
-        "32": "",
-        "33": "",
-        "34": "",
-        "35": "",
-        "36": "",
-        "37": "",
-        "38": "",
-        "39": "",
-        "40": "",
-        "41": "",
-        "42": "",
-        "43": "",
-        "44": "",
-        "45": "",
-        "46": "",
-        "47": "",
-        "48": "",
-        "49": "",
-        "50": "",
-        "51": "",
-        "52": "",
-        "53": "",
-        "54": "",
-        "55": "",
-        "56": "",
-        "57": "",
-        "58": "",
-        "59": "",
-        "60": "",
-        "61": "",
-        "62": "",
-        "63": "",
-        "64": "",
-        "65": "",
-        "66": "",
-        "67": "",
-        "68": "",
-        "69": "",
-        "70": ""
+        "1": "a", "2": "c", "3": "c", "4": "a", "5": "", "6": "", "7": "", "8": "",
+        "9": "", "10": "", "11": "", "12": "", "13": "", "14": "", "15": "", "16": "",
+        "17": "", "18": "", "19": "", "20": "", "21": "", "22": "", "23": "", "24": "",
+        "25": "", "26": "", "27": "", "28": "", "29": "", "30": "", "31": "", "32": "",
+        "33": "", "34": "", "35": "", "36": "", "37": "", "38": "", "39": "", "40": "",
+        "41": "", "42": "", "43": "", "44": "", "45": "", "46": "", "47": "", "48": "",
+        "49": "", "50": "", "51": "", "52": "", "53": "", "54": "", "55": "", "56": "",
+        "57": "", "58": "", "59": "", "60": "", "61": "", "62": "", "63": "", "64": "",
+        "65": "", "66": "", "67": "", "68": "", "69": "", "70": ""
     };
 
     function renderMCQs() {
@@ -311,7 +249,7 @@
     // Option par click karne par select (highlight) karna
     window.selectOption = function(label) {
         let input = label.querySelector('input');
-        if(input.disabled) return; // Agar quiz submit ho gaya hai toh click kaam nahi karega
+        if(input.disabled) return; 
         
         input.checked = true;
         let allLabels = label.parentElement.querySelectorAll('.option-label');
@@ -320,7 +258,7 @@
     };
 
     // Sabse aakhiri me Submit dabane par Score nikalna
-        window.calculateScore = function() {
+    window.calculateScore = function() {
         let score = 0;
         let total = 0;
         const allCards = document.querySelectorAll('.qa-card');
@@ -330,16 +268,14 @@
             const qNum = card.getAttribute('data-qnum');
             let correctOpt = mcqAnswers[qNum]; 
             
-            // आंसर की में कैपिटल लेटर (A) या फालतू स्पेस को ऑटोमैटिक ठीक करना
             if(correctOpt) {
                 correctOpt = correctOpt.trim().toLowerCase();
             }
 
             const selectedRadio = card.querySelector('input[type="radio"]:checked');
-
-            // सभी ऑप्शंस को लॉक करना और सही ऑप्शन ढूंढना
             let correctRadio = null;
             const allRadios = card.querySelectorAll('input[type="radio"]');
+            
             allRadios.forEach(r => {
                 if(correctOpt && r.value.trim().toLowerCase() === correctOpt) {
                     correctRadio = r;
@@ -349,17 +285,14 @@
 
             card.querySelectorAll('.option-label').forEach(l => l.style.cursor = "default");
 
-            // सही आंसर वाले बॉक्स को हरा (green) करना
             if(correctRadio) {
                 correctRadio.parentElement.classList.add('correct-opt');
             }
 
-            // यूजर ने जो सेलेक्ट किया है उसे चेक करना
             if(selectedRadio) {
                 if(correctOpt && selectedRadio.value.trim().toLowerCase() === correctOpt) {
-                    score++; // सही जवाब, स्कोर बढ़ाएं
+                    score++; 
                 } else {
-                    // गलत जवाब दिया, तो उसको लाल (red) कर दें
                     selectedRadio.parentElement.classList.add('wrong-opt');
                 }
             }
@@ -373,9 +306,12 @@
         document.getElementById('submit-btn').style.display = 'none'; 
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        // Netlify को डेटा भेजना
+        // Netlify को डेटा भेजना (Error Fixed Here)
         const formData = new FormData();
         formData.append("form-name", "StudentScores");
+        
+        // छात्र का नाम न होने पर इसे खाली या 'Student' के रूप में सेट किया गया है
+        let studentName = "Class 10 Student"; 
         formData.append("Student_Name", studentName);
         formData.append("Score", finalScore);
 
@@ -385,3 +321,10 @@
             body: new URLSearchParams(formData).toString()
         }).catch((error) => console.log(error));
     }
+
+    // यह वह लाइन है जो पहले नहीं थी, इसकी वजह से प्रश्न लोड नहीं हो रहे थे।
+    renderMCQs();
+
+</script>
+</body>
+</html>
