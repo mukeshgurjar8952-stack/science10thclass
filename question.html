@@ -3,47 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 10 Science - Live Quiz</title>
+    <title>Class 10 Science - Mega Quiz</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; }
         .container { max-width: 800px; margin: auto; }
         h2 { text-align: center; color: #2c3e50; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .section-title { background-color: #3498db; color: white; padding: 10px 15px; border-radius: 5px; margin-top: 30px; }
-        .qa-card { background: #fff; border-left: 5px solid #3498db; padding: 15px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .q-text { font-size: 16px; margin-bottom: 12px; color: #2c3e50; }
         
-        /* Interactive Options ki Design */
-        .options-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .qa-card { background: #fff; border-left: 5px solid #3498db; padding: 15px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .q-text { font-size: 16px; margin-bottom: 12px; color: #2c3e50; font-weight: bold; }
+        
+        .options-container { display: flex; flex-direction: column; gap: 8px; }
         .option-label {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 15px;
+            display: flex; align-items: center; padding: 10px 15px;
+            background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;
+            cursor: pointer; transition: 0.2s; font-size: 15px;
         }
         .option-label:hover { background-color: #e2e6ea; }
         .option-label input { margin-right: 10px; transform: scale(1.2); cursor: pointer; }
-        .selected-opt { background-color: #d1ecf1 !important; border-color: #bee5eb !important; }
+        
+        /* Select karne par rang */
+        .selected-opt { background-color: #d1ecf1; border-color: #bee5eb; }
+        
+        /* Submit ke baad ke rang (Sahi aur Galat) */
+        .correct-opt { background-color: #d4edda !important; border-color: #c3e6cb !important; color: #155724; font-weight: bold; }
+        .wrong-opt { background-color: #f8d7da !important; border-color: #f5c6cb !important; color: #721c24; text-decoration: line-through; }
 
-        /* Button aur Answer Box */
-        .show-ans-btn { background-color: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; transition: 0.3s; }
-        .show-ans-btn:hover { background-color: #27ae60; }
-        .answer-box { display: none; margin-top: 15px; padding: 12px; border-radius: 5px; font-weight: bold; font-size: 15px; }
+        /* Buttons aur Score Card */
+        .submit-btn { background-color: #e67e22; color: white; border: none; padding: 15px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 18px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .submit-btn:hover { background-color: #d35400; }
+        
+        .score-card { display: none; background-color: #2ecc71; color: white; text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 20px; font-size: 22px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>Science 10th - Live Quiz / Test</h2>
+    <h2>Science 10th - Mega Test</h2>
+    
+    <!-- Yahan result dikhega -->
+    <div id="score-card" class="score-card"></div>
+
     <h3 class="section-title">वस्तुनिष्ठ प्रश्न (Multiple Choice Questions)</h3>
     <div id="mcq-container"></div>
+    
+    <!-- Submit Button -->
+    <button id="submit-btn" class="submit-btn" onclick="calculateScore()">क्विज सबमिट करें (Submit Quiz)</button>
 </div>
 
 <script>
-    // 1. Yahan par aapke MCQs aayenge
+    // 1. Yahan apne saare questions copy-paste karein
     const mcqData = `
 1. संकुचन के समय हृदय के अंदर रक्त के पश्च प्रवाह को रोकता है-
 (a) वाल्व (b) निलय की दीवार (c) आलिंद की दीवार (d) उपरोक्त सभी
@@ -51,16 +59,19 @@
 (a) एक (b) तीन (c) दो (d) चार
 3. रुधिर का तरल भाग कहलाता है-
 (a) सीरम (b) लिम्फ (c) प्लाज्मा (d) कोई नहीं
+4. निम्न में से कौनसा द्वितीयक श्वसन अंग है-
+(a) मुँह (b) नाक (c) फेरिंक्स (d) लेरिंक्स
 `;
 
-    // 2. Yahan sahi Answers set kiye gaye hain
+    // 2. Yahan saare sahi answers likhein (Sirf a, b, c ya d likhna hai)
+    // Format: "Question Number" : "Sahi Option",
     const mcqAnswers = {
-        "1": "(a) वाल्व",
-        "2": "(c) दो",
-        "3": "(c) प्लाज्मा"
+        "1": "a",
+        "2": "c",
+        "3": "c",
+        "4": "a"
     };
 
-    // Code jo MCQs ko clickable options (Radio buttons) me badalta hai
     function renderMCQs() {
         const container = document.getElementById('mcq-container');
         const questions = mcqData.trim().split(/\n(?=\d+\.)/); 
@@ -69,12 +80,9 @@
             let cleanText = q.trim();
             if(!cleanText) return;
             
-            // Question number nikalna
             let qNumMatch = cleanText.match(/^(\d+)\./);
             let qNum = qNumMatch ? qNumMatch[1] : "";
-            let ansText = mcqAnswers[qNum] ? mcqAnswers[qNum] : "उत्तर उपलब्ध नहीं";
 
-            // Options ko alag karke Buttons banana
             let firstOptIndex = cleanText.search(/\((a|b|c|d|अ|ब|स|द)\)/);
             let questionText = cleanText;
             let optionsHTML = "";
@@ -83,7 +91,6 @@
                 questionText = cleanText.substring(0, firstOptIndex).trim();
                 let optionsPart = cleanText.substring(firstOptIndex);
                 
-                // Option (a), (b) ke hisaab se todna
                 let optRegex = /\((a|b|c|d|अ|ब|स|द)\)\s*([\s\S]*?)(?=\((a|b|c|d|अ|ब|स|द)\)|$)/g;
                 optionsHTML = optionsPart.replace(optRegex, function(match, optKey, optValue) {
                     return `<label class="option-label" onclick="selectOption(this)">
@@ -93,56 +100,71 @@
                 });
             }
 
-            // HTML Box banana
             let cardHTML = `
-                <div class="qa-card" id="card-${qNum}">
-                    <div class="q-text"><strong>${questionText}</strong></div>
+                <div class="qa-card" data-qnum="${qNum}">
+                    <div class="q-text">${questionText}</div>
                     <div class="options-container">${optionsHTML}</div>
-                    <button class="show-ans-btn" onclick="checkAnswer(this, '${qNum}', '${ansText}')">उत्तर जांचें (Check Answer)</button>
-                    <div class="answer-box"></div>
                 </div>
             `;
             container.innerHTML += cardHTML;
         });
     }
 
-    // Option click karne par neela (highlight) karne ka function
+    // Option par click karne par select (highlight) karna
     window.selectOption = function(label) {
+        let input = label.querySelector('input');
+        if(input.disabled) return; // Agar quiz submit ho gaya hai toh click kaam nahi karega
+        
+        input.checked = true;
         let allLabels = label.parentElement.querySelectorAll('.option-label');
         allLabels.forEach(l => l.classList.remove('selected-opt'));
         label.classList.add('selected-opt');
     };
 
-    // Button dabane par sahi/galat check karne ka function
-    window.checkAnswer = function(btn, qNum, correctAns) {
-        let card = document.getElementById('card-' + qNum);
-        let selectedOption = card.querySelector('input[type="radio"]:checked');
-        let ansBox = btn.nextElementSibling;
-        
-        ansBox.style.display = "block"; // Box dikhayein
-        btn.style.display = "none"; // Button chupa dein
+    // Sabse aakhiri me Submit dabane par Score nikalna
+    window.calculateScore = function() {
+        let score = 0;
+        let total = 0;
 
-        if(selectedOption) {
-            let userVal = selectedOption.value; // jaise 'a', 'b'
-            
-            // Check karna ki user ka option sahi answer me hai ya nahi
-            if(correctAns.includes("(" + userVal + ")")) {
-                ansBox.innerHTML = `✅ बिल्कुल सही! ${correctAns}`;
-                ansBox.style.color = "#155724";
-                ansBox.style.backgroundColor = "#d4edda";
-                ansBox.style.borderLeft = "5px solid #28a745";
-            } else {
-                ansBox.innerHTML = `❌ गलत! सही उत्तर है: ${correctAns}`;
-                ansBox.style.color = "#721c24";
-                ansBox.style.backgroundColor = "#f8d7da";
-                ansBox.style.borderLeft = "5px solid #dc3545";
+        const allCards = document.querySelectorAll('.qa-card');
+        
+        allCards.forEach(card => {
+            total++;
+            const qNum = card.getAttribute('data-qnum');
+            const correctOpt = mcqAnswers[qNum]; 
+            const selectedRadio = card.querySelector('input[type="radio"]:checked');
+
+            // Sabse pehle saare options ko lock (disable) kar do
+            const allRadios = card.querySelectorAll('input[type="radio"]');
+            allRadios.forEach(r => r.disabled = true);
+            card.querySelectorAll('.option-label').forEach(l => l.style.cursor = "default");
+
+            // Sahi answer wala box hara (green) kar do
+            if(correctOpt) {
+                const correctRadio = card.querySelector(`input[value="${correctOpt}"]`);
+                if(correctRadio) {
+                    correctRadio.parentElement.classList.add('correct-opt');
+                }
             }
-        } else {
-            ansBox.innerHTML = `⚠️ आपने कोई विकल्प नहीं चुना। सही उत्तर है: ${correctAns}`;
-            ansBox.style.color = "#856404";
-            ansBox.style.backgroundColor = "#fff3cd";
-            ansBox.style.borderLeft = "5px solid #ffc107";
-        }
+
+            // User ne jo check kiya hai use verify karo
+            if(selectedRadio) {
+                if(selectedRadio.value === correctOpt) {
+                    score++; // Sahi jawab, score badhao
+                } else {
+                    // Galat jawab diya, toh usko laal (red) kar do
+                    selectedRadio.parentElement.classList.add('wrong-opt');
+                }
+            }
+        });
+
+        // Score Card show karo aur sabse upar scroll kar do
+        const scoreCard = document.getElementById('score-card');
+        scoreCard.innerHTML = `🏆 आपका स्कोर: ${score} / ${total}`;
+        scoreCard.style.display = 'block';
+        
+        document.getElementById('submit-btn').style.display = 'none'; // Submit button chupa do
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // Page ko upar le jao
     }
 
     window.onload = () => { renderMCQs(); };
