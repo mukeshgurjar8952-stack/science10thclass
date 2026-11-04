@@ -320,52 +320,68 @@
     };
 
     // Sabse aakhiri me Submit dabane par Score nikalna
-    window.calculateScore = function() {
+        window.calculateScore = function() {
         let score = 0;
         let total = 0;
-
         const allCards = document.querySelectorAll('.qa-card');
         
         allCards.forEach(card => {
             total++;
             const qNum = card.getAttribute('data-qnum');
-            const correctOpt = mcqAnswers[qNum]; 
-            const selectedRadio = card.querySelector('input[type="radio"]:checked');
-
-            // Sabse pehle saare options ko lock (disable) kar do
-            const allRadios = card.querySelectorAll('input[type="radio"]');
-            allRadios.forEach(r => r.disabled = true);
-            card.querySelectorAll('.option-label').forEach(l => l.style.cursor = "default");
-
-            // Sahi answer wala box hara (green) kar do
+            let correctOpt = mcqAnswers[qNum]; 
+            
+            // आंसर की में कैपिटल लेटर (A) या फालतू स्पेस को ऑटोमैटिक ठीक करना
             if(correctOpt) {
-                const correctRadio = card.querySelector(`input[value="${correctOpt}"]`);
-                if(correctRadio) {
-                    correctRadio.parentElement.classList.add('correct-opt');
-                }
+                correctOpt = correctOpt.trim().toLowerCase();
             }
 
-            // User ne jo check kiya hai use verify karo
+            const selectedRadio = card.querySelector('input[type="radio"]:checked');
+
+            // सभी ऑप्शंस को लॉक करना और सही ऑप्शन ढूंढना
+            let correctRadio = null;
+            const allRadios = card.querySelectorAll('input[type="radio"]');
+            allRadios.forEach(r => {
+                if(correctOpt && r.value.trim().toLowerCase() === correctOpt) {
+                    correctRadio = r;
+                }
+                r.disabled = true; // ऑप्शंस लॉक हो जाएंगे
+            });
+
+            card.querySelectorAll('.option-label').forEach(l => l.style.cursor = "default");
+
+            // सही आंसर वाले बॉक्स को हरा (green) करना
+            if(correctRadio) {
+                correctRadio.parentElement.classList.add('correct-opt');
+            }
+
+            // यूजर ने जो सेलेक्ट किया है उसे चेक करना
             if(selectedRadio) {
-                if(selectedRadio.value === correctOpt) {
-                    score++; // Sahi jawab, score badhao
+                if(correctOpt && selectedRadio.value.trim().toLowerCase() === correctOpt) {
+                    score++; // सही जवाब, स्कोर बढ़ाएं
                 } else {
-                    // Galat jawab diya, toh usko laal (red) kar do
+                    // गलत जवाब दिया, तो उसको लाल (red) कर दें
                     selectedRadio.parentElement.classList.add('wrong-opt');
                 }
             }
         });
 
-        // Score Card show karo aur sabse upar scroll kar do
+        const finalScore = score + " / " + total;
         const scoreCard = document.getElementById('score-card');
-        scoreCard.innerHTML = `🏆 आपका स्कोर: ${score} / ${total}`;
+        scoreCard.innerHTML = `🏆 आपका स्कोर: ${finalScore}`;
         scoreCard.style.display = 'block';
         
-        document.getElementById('submit-btn').style.display = 'none'; // Submit button chupa do
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Page ko upar le jao
-    }
+        document.getElementById('submit-btn').style.display = 'none'; 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    window.onload = () => { renderMCQs(); };
-</script>
-</body>
-</html>
+        // Netlify को डेटा भेजना
+        const formData = new FormData();
+        formData.append("form-name", "StudentScores");
+        formData.append("Student_Name", studentName);
+        formData.append("Score", finalScore);
+
+        fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(formData).toString()
+        }).catch((error) => console.log(error));
+    }
