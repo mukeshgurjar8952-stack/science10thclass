@@ -9,7 +9,31 @@
         .container { max-width: 800px; margin: auto; }
         h2 { text-align: center; color: #2c3e50; background: white; padding: 15px; border-radius: 10px; }
         .section-title { background-color: #3498db; color: white; padding: 10px 15px; border-radius: 5px; margin-top: 30px; }
-        .qa-card { background: #fff; border-left: 5px solid #e67e22; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .qa-card { background: #fff; border-left: 5px solid #e67e22; padding: 15px; margin-bottom: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* Answer Button aur Box ki Design */
+        .show-ans-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .show-ans-btn:hover { background-color: #27ae60; }
+        .answer-box {
+            display: none; /* Default hide rahega */
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f8f5;
+            border-left: 4px solid #2ecc71;
+            color: #27ae60;
+            font-weight: bold;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -20,20 +44,64 @@
 </div>
 
 <script>
+    // Yahan saare questions aayenge
     const mcqData = `
 1. संकुचन के समय हृदय के अंदर रक्त के पश्च प्रवाह को रोकता है-
 (a) वाल्व (b) निलय की दीवार (c) आलिंद की दीवार (d) उपरोक्त सभी
 2. एक परिसंचरण में रुधिर हृदय से कितनी बार गुजरता है-
 (a) एक (b) तीन (c) दो (d) चार
 `;
+
+    // Yahan saare answers ki list banegi (Question Number: Sahi Option)
+    const mcqAnswers = {
+        "1": "(a) वाल्व",
+        "2": "(c) दो"
+    };
+
     function renderMCQs() {
         const container = document.getElementById('mcq-container');
         const questions = mcqData.trim().split(/\n(?=\d+\.)/); 
+        
         questions.forEach(q => {
-            let cleanText = q.trim().replace(/\((a|b|c|d|अ|ब|स|द|i|ii|iii|iv)\)/g, "<br><strong>($1)</strong> ");
-            container.innerHTML += `<div class="qa-card">${cleanText}</div>`;
+            let cleanText = q.trim();
+            if(!cleanText) return;
+            
+            // Question ka number nikalna (Jaise 1, 2)
+            let qNumMatch = cleanText.match(/^(\d+)\./);
+            let qNum = qNumMatch ? qNumMatch[1] : "";
+
+            // Options ko alag line me karna
+            cleanText = cleanText.replace(/\((a|b|c|d|अ|ब|स|द|i|ii|iii|iv)\)/g, "<br><strong>($1)</strong> ");
+            
+            // Sahi answer pata karna
+            let ansText = mcqAnswers[qNum] ? mcqAnswers[qNum] : "उत्तर अभी सेट नहीं किया गया है";
+
+            // HTML banakar page par dikhana
+            let cardHTML = `
+                <div class="qa-card">
+                    <div>${cleanText}</div>
+                    <button class="show-ans-btn" onclick="toggleAnswer(this)">उत्तर देखें</button>
+                    <div class="answer-box">सही उत्तर: ${ansText}</div>
+                </div>
+            `;
+            container.innerHTML += cardHTML;
         });
     }
+
+    // Button dabane par answer Hide/Show karne ka logic
+    window.toggleAnswer = function(btn) {
+        let ansBox = btn.nextElementSibling;
+        if (ansBox.style.display === "block") {
+            ansBox.style.display = "none";
+            btn.innerText = "उत्तर देखें";
+            btn.style.backgroundColor = "#2ecc71";
+        } else {
+            ansBox.style.display = "block";
+            btn.innerText = "उत्तर छिपाएं";
+            btn.style.backgroundColor = "#e74c3c"; // Laal rang chipane ke liye
+        }
+    }
+
     window.onload = () => { renderMCQs(); };
 </script>
 </body>
