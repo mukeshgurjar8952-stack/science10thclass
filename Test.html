@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class 10 Science - Exam App</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: auto; padding: 20px; }
+        
+        /* Login Screen */
+        #login-screen { background: white; max-width: 400px; margin: 100px auto; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        #login-screen h2 { color: #2c3e50; }
+        .input-field { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        .start-btn { background-color: #3498db; color: white; border: none; padding: 15px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 18px; margin-top: 10px; }
+        .start-btn:hover { background-color: #2980b9; }
+
+        /* Quiz Header & Timer */
+        #quiz-screen { display: none; }
+        .quiz-header { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .timer { font-size: 20px; font-weight: bold; color: #e74c3c; background: #fadbd8; padding: 8px 15px; border-radius: 5px; }
+        .student-info { font-weight: bold; color: #2c3e50; }
+
+        /* MCQ Styles */
+        .qa-card { background: #fff; border-left: 5px solid #3498db; padding: 15px; margin-top: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .q-text { font-size: 16px; margin-bottom: 12px; color: #2c3e50; font-weight: bold; }
+        .options-container { display: flex; flex-direction: column; gap: 8px; }
+        .option-label { display: flex; align-items: center; padding: 10px 15px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; cursor: pointer; transition: 0.2s; font-size: 15px; margin: 0; }
+        .option-label:hover { background-color: #e2e6ea; }
+        .option-label input { margin-right: 10px; transform: scale(1.2); cursor: pointer; }
+        .selected-opt { background-color: #d1ecf1; border-color: #bee5eb; }
+        .correct-opt { background-color: #d4edda !important; border-color: #c3e6cb !important; color: #155724; font-weight: bold; }
+        .wrong-opt { background-color: #f8d7da !important; border-color: #f5c6cb !important; color: #721c24; text-decoration: line-through; }
+
+        .submit-btn { background-color: #e67e22; color: white; border: none; padding: 15px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 18px; margin-top: 20px; }
+        .score-card { display: none; background-color: #2ecc71; color: white; text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 20px; font-size: 22px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- Hidden Form to connect with Netlify (Very Important for Admin Dashboard) -->
+<form name="StudentScores" netlify netlify-honeypot="bot-field" hidden>
+    <input type="text" name="Student_Name" />
+    <input type="text" name="Roll_Number" />
+    <input type="text" name="Score" />
+    <input type="text" name="Time_Taken" />
+</form>
+
+<!-- Login Screen -->
+<div id="login-screen">
+    <h2>Science 10th - Mega Test</h2>
+    <p>Test shuru karne ke liye details bharein</p>
+    <input type="text" id="studentName" class="input-field" placeholder="Apna Naam (Student Name)" required>
+    <input type="number" id="rollNumber" class="input-field" placeholder="Roll Number ya Mobile No." required>
+    <button class="start-btn" onclick="startQuiz()">Login & Start Test</button>
+    <p id="login-error" style="color: red; display: none;">Kripya sabhi details bharein!</p>
+</div>
+
+<!-- Quiz Screen -->
+<div class="container" id="quiz-screen">
+    <div class="quiz-header">
+        <div class="student-info" id="display-student-info">Student: Name</div>
+        <div class="timer" id="timer-display">⏱ 60:00</div>
+    </div>
+    
+    <div id="score-card" class="score-card"></div>
+    <div id="mcq-container"></div>
+    
+    <button id="submit-btn" class="submit-btn" onclick="calculateScore()">क्विज सबमिट करें (Submit Quiz)</button>
+</div>
+
+<script>
+    // 50 Questions Data
+    const mcqData = `
+1. संकुचन के समय हृदय के अंदर रक्त के पश्च प्रवाह को रोकता है-
+(a) वाल्व (b) निलय की दीवार (c) आलिंद की दीवार (d) उपरोक्त सभी
+2. एक परिसंचरण में रुधिर हृदय से कितनी बार गुजरता है-
+(a) एक (b) तीन (c) दो (d) चार
+3. रुधिर का तरल भाग कहलाता है-
+(a) सीरम (b) लिम्फ (c) प्लाज्मा (d) कोई नहीं
+4. निम्न में से कौनसा द्वितीयक श्वसन अंग है-
+(a) मुँह (b) नाक (c) फेरिंक्स (d) लेरिंक्स
+5. निम्न में से कौनसा एंजाइम अग्न्याशय से नहीं निकलता है-
+(a) अग्न्याशयी एमाइलेज (b) ट्रिप्सिन (c) रेनिन (d) लाइपेज
+6. एंजाइमों द्वारा भोजन का अधिकांश पाचन कहाँ होता है-
+(a) आमाशय (b) मुँह (c) छोटी आंत (d) बड़ी आंत
+7. एक न्यूरॉन में विद्युतीय संकेतों का रासायनिक संकेतों में परिवर्तन कहाँ पर होता है?
+(a) कोशिका काय में (b) तंत्रिकाक्ष पर (c) द्रुमाश्य पर (d) कोशिका द्रव्य में
+8. सिनेप्स में आवेग का स्थानान्तरण होता है-
+(a) एक न्यूरॉन के द्रुमाश्य से दूसरे न्यूरॉन के तंत्रिकाक्ष की ओर (b) एक ही न्यूरॉन में तंत्रिकाक्ष से कोशिकाकाय की ओर (c) एक ही न्यूरॉन में कोशिकाकाय से तंत्रिकाक्ष की ओर (d) एक न्यूरॉन के तंत्रिकाक्ष सिरे से दूसरे न्यूरॉन के दुमाश्य की ओर
+9. गलत युग्म का चयन कीजिये-
+(a) एड्रीनलीन पीयूष ग्रंथि (b) टेस्टोस्टेरॉन-वृषण (c) एस्ट्रोजन-अण्डाशय (d) थायरॉक्सिन-थॉयराइड ग्रंथि
+10. मस्तिष्क उत्तरदायी है-
+(a) सोचने के लिए (b) हृदय स्पन्दन के लिए (c) शरीर का सन्तुलन बनाने के लिए (d) उपर्युक्त सभी
+11. विकसित पत्तियों एवं फलों को झड़ने में सहायक है-
+(a) ऑक्सीन (b) जिबरेलिन (c) एब्सिसिक अम्ल (d) साइटोकाइनिन
+12. मानव में मस्तिष्क का कार्य है?
+(a) सोचना (b) संतुलन बनाना (c) हदय स्पदंन (d) उपरोक्त सभी
+13. पादप हार्मोन है-
+(a) ऑक्सिन (b) जिबरेलिन (c) साइटोकाइनिन (d) उपर्युक्त सभी
+14. मनुष्य में जैव प्रक्रम नियमित एवं नियंत्रित किये जाते हैं-
+(a) जनन एवं अंतःस्रावी तंत्र द्वारा (b) श्वसन एवं तंत्रिका तंत्र द्वारा (c) अंतःस्रावी एवं पाचन तंत्र द्वारा (d) तंत्रिका एवं अंतःस्रावी तंत्र द्वारा
+15. वृद्धि हॉर्मोन स्रावित होता है-
+(a) थाइरॉइड ग्रन्थि से (b) पीयूष ग्रन्थि से (c) थाइमस ग्रन्थि से (d) अग्नयाशय से
+16. दो न्यूरॉनों के मध्य रिक्त स्थान कहलाता है-
+(a) द्रुमाश्य (b) सिनेप्स (c) तंत्रिकाक्ष (d) आवेग
+17. जड़ों का प्रकाश से दूर गति करना कहलाता है-
+(a) धनात्मक प्रकाशानुवर्तन (b) ऋणात्मक प्रकाशानुवर्तन (c) ऋणात्मक जलानुवर्तन (d) धनात्मक जलानुवर्तन
+18. दो तन्त्रिका कोशिका के मध्य खाली स्थान को कहते हैं-
+(a) दुमिका (b) सिनेप्स (c) एक्सॉन (d) आवेग
+19. RRYY जीनी संरचना का बाह्य लक्षण होगा-
+(a) गोल, हरा (b) झुर्रीदार, पीला (c) गोल, पीला (d) झुर्रीदार, हरा
+20. Tt x tt में संकरण से बनने वाले संकर संतति का अनुपात क्या होगा-
+(a) 3:1 (b) 1:1 (c) 1:2:1 (d) 2:1
+21. मेंडल ने अपने प्रयोगों के लिये कितने युग्म विकल्पी लक्षणों का चयन किया-
+(a) 34 (b) 17 (c) 12 (d) 7
+22. विज्ञान की वह शाखा जिसमें सजीवों में आनुवांशिकता एवं लक्षणों में विभिन्नताओं के बारे में अध्ययन किया जाता है-
+(a) आनुवांशिकी (b) भू-विज्ञान (c) वानिकी (d) इनमें से कोई नहीं
+23. आनुवंशिकी का जनक कहते हैं-
+(a) जोहनसन को (b) ह्यूगो डी ब्रीज को (c) मेण्डेल को (d) डार्विन को
+24. मेण्डल ने अपने प्रयोग किए थे-
+(a) गुडहल पर (b) मटर पर (c) गुलाब पर (d) सभी पर
+25. आपतन कोण (i) का मान होता है?
+(a) परावर्तन कोण से ज्यादा (b) परावर्तन कोण के समान (c) परावर्तन कोण से कम (d) उपर्युक्त सभी
+26. किस घटना के कारण पानी से भरे टैंक के पैंदे में रखा सिक्का ऊपर उठा हुआ दिखाई देता है-
+(a) अपवर्तन (b) परावर्तन (c) पूर्ण आन्तरिक परावर्तन (d) इनमें से कोई नहीं
+27. प्रकाश का वेग सर्वाधिक होता है-
+(a) पानी में (b) कांच में (c) निर्वात में (d) ग्लिसरीन में
+28. निम्न में से कौनसा दर्पण वस्तु का बड़ा प्रतिबिम्ब बनाता है-
+(a) समतल दर्पण (b) उत्तल दर्पण (c) अवतल दर्पण (d) इनमें से कोई नहीं
+29. किसी दर्पण से आप चाहे कितनी ही दूरी खड़े हो, आपका प्रतिबिम्ब सदैव सीधा प्रतीत होता है। सम्भवतः दर्पण है-
+(a) केवल समतल (b) केवल अवतल (c) केवल उत्तल (d) या तो समतल अथवा उत्तल
+30. बाह्य आघातों से आँख की सुरक्षा करता है-
+(a) कॉर्निया (b) परितारिका (c) रक्तक पटल (d) श्वेत पटल
+31. नैत्र में प्रवेश करने वाली प्रकाश की मात्रा को नियंत्रित करता है-
+(a) पक्ष्माभी पेशियाँ (b) पुतली (c) कॉर्निया (d) आइरिस
+32. कोहरा, धूल या धूएँ द्वारा प्रकाश का कौनसा रंग सबसे कम प्रकीर्णित होता है-
+(a) बैंगनी (b) नीला (c) लाल (d) पीला
+33. किसी स्वस्थ नैत्र की स्पष्ट दृष्टि की निकटतम दूरी क्या है?
+(a) 25 मी (b) 20 मी (c) 25 सेमी (d) 20 सेमी
+34. मानव नैत्र की फोकस दूरी में परिवर्तन निम्न में से किसके द्वारा होता है-
+(a) पक्ष्माभ पेशियाँ (b) पुतली (c) कार्निया (d) आइरिस (परितारिका)
+35. मानव नेत्र में रेटिना पर बना प्रतिबिम्ब होता है-
+(a) आभासी एवं सीधा (b) वास्तविक एवं उल्टा (c) आभासी एवं उल्टा (d) वास्तविक एवं सीधा
+36. यदि किसी परिपथ में 1 कूलॉम आवेश को प्रवाहित करने में 1 जूल कार्य करना पड़ता है, तब दो बिंदुओं के बीच विभवांतर होगा-
+(a) 1 वोल्ट (b) 2 वोल्ट (c) 3 वोल्ट (d) 4 वोल्ट
+37. चालक तार का प्रतिरोध निम्न में से किस पर निर्भर नहीं करता है?
+(a) चालक तार की लम्बाई पर (b) अनुप्रस्थकाट के क्षेत्रफल पर (c) उपर्युक्त दोनों (d) उपर्युक्त में से कोई नहीं
+38. ताप बढ़ने पर चालक का प्रतिरोध-
+(a) बढ़ता है (b) घटता है (c) सामान्य रहता है (d) इनमें से कोई नहीं
+39. 12 एवं 22 के दो प्रतिरोधों को श्रेणीक्रम में जोड़ने पर तुल्य प्रतिरोध है-
+(a) 1222 (b) 1/34 (c) 302 (d) 34
+40. वातावरण में लोहे के ऊपर भूरी परत चढ़ने की प्रक्रिया है-
+(a) अपचयन (b) संक्षारण (c) विकृतगंधिता (d) द्विविस्थापन
+41. तेलीय पदार्थ जैसे चिप्स, नमकीन आदि का कुछ दिनों बाद खराब हो जाना कहलाता है-
+(a) संक्षारण (b) विकृतगंधिता (c) अपचयन (d) उपरोक्त सभी
+42. BaCl2(aq) + Na2SO4(aq) → BaSO4(s) + 2NaCl(aq) है-
+(a) विस्थापन अभिक्रिया (b) द्वि-विस्थापन अभिक्रिया (c) संयोजन अभिक्रिया (d) वियोजन अभिक्रिया
+43. इलेक्ट्रॉन दाता अभिकारक कहलाते हैं-
+(a) ऑक्सीकारक पदार्थ (b) उत्प्रेरक (c) अपचायक पदार्थ (d) इनमें से कोई नहीं
+44. FeCl3 का FeCl2 में बदलना कहलाता है-
+(a) ऑक्सीकरण (b) अपचयन (c) वियोजन (d) संयुग्मन
+45. वह अभिक्रिया जिसमें ऊष्मा उत्पन्न होती है, कहलाती है-
+(a) समावयवी अभिक्रिया (b) ऊष्माशोषी अभिक्रिया (c) ऊष्माक्षेपी अभिक्रिया (d) उपर्युक्त सभी
+46. 2CH3COOH + Na2CO3 → 1 यौगिक [A] + H2O + CO2 उपरोक्त अभिक्रिया में यौगिक [A] है-
+(a) CH3COOH (b) 2CH3COONa (c) C2H5OH (d) CaCO3
+47. कार्बन का वह अपररूप जो उच्च ताप पर अतिचालक के रूप में महत्त्वपूर्ण है-
+(a) ग्रेफाइट (b) फूलरीन (c) हीरा (d) आयनिक
+48. डिटर्जेन्ट (अपमार्जक) की सफाई प्रक्रिया किस प्रकार के जल में होती है-
+(a) कठोर (b) मृदु जल (c) कठोर एवं मृद दोनों जल (d) उपरोक्त में से कोई नहीं
+49. एक हाइड्रोकार्बन में 3 कार्बन है तो इसका पूर्वलग्न (prefix) होगा-
+(a) एथ (b) प्रोप (c) ब्यूट (d) पेन्ट
+50. ब्लिचिंग पाउडर वायु में खुला छोड़ने पर एक गैस देता है, जो है-
+(a) H2 (b) Cl2 (c) O2 (d) N2
+`;
+
+    const mcqAnswers = {
+        "1": "a", "2": "c", "3": "c", "4": "a", "5": "c", "6": "c", "7": "b", "8": "d", "9": "a", "10": "d",
+        "11": "c", "12": "d", "13": "d", "14": "d", "15": "b", "16": "b", "17": "b", "18": "b", "19": "c", "20": "b",
+        "21": "d", "22": "a", "23": "c", "24": "b", "25": "b", "26": "a", "27": "c", "28": "c", "29": "d", "30": "d",
+        "31": "b", "32": "c", "33": "c", "34": "a", "35": "b", "36": "a", "37": "d", "38": "a", "39": "d", "40": "b",
+        "41": "b", "42": "b", "43": "c", "44": "b", "45": "c", "46": "b", "47": "b", "48": "c", "49": "b", "50": "b"
+    };
+
+    let currentUser = "";
+    let currentRoll = "";
+    let timerInterval;
+    let totalTime = 60 * 60; // 60 minutes in seconds
+
+    // Login and Timer Logic
+    function startQuiz() {
+        const nameInput = document.getElementById('studentName').value.trim();
+        const rollInput = document.getElementById('rollNumber').value.trim();
+        
+        if(nameInput === "" || rollInput === "") {
+            document.getElementById('login-error').style.display = "block";
+            return;
+        }
+
+        currentUser = nameInput;
+        currentRoll = rollInput;
+        
+        document.getElementById('login-screen').style.display = "none";
+        document.getElementById('quiz-screen').style.display = "block";
+        document.getElementById('display-student-info').innerHTML = `👤 ${currentUser} (Roll: ${currentRoll})`;
+
+        renderMCQs();
+        startTimer();
+    }
+
+    function startTimer() {
+        const timerDisplay = document.getElementById('timer-display');
+        timerInterval = setInterval(() => {
+            if(totalTime <= 0) {
+                clearInterval(timerInterval);
+                calculateScore(); // Auto submit when time is up
+                return;
+            }
+            totalTime--;
+            let minutes = Math.floor(totalTime / 60);
+            let seconds = totalTime % 60;
+            timerDisplay.innerHTML = `⏱ ${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
+        }, 1000);
+    }
+
+    // Render Logic
+    function renderMCQs() {
+        const container = document.getElementById('mcq-container');
+        const questions = mcqData.trim().split(/\n(?=\d+\.)/); 
+        questions.forEach(q => {
+            let cleanText = q.trim();
+            if(!cleanText) return;
+            let qNumMatch = cleanText.match(/^(\d+)\./);
+            let qNum = qNumMatch ? qNumMatch[1] : "";
+            let firstOptIndex = cleanText.search(/\((a|b|c|d)\)/);
+            let questionText = cleanText;
+            let optionsHTML = "";
+            if(firstOptIndex !== -1) {
+                questionText = cleanText.substring(0, firstOptIndex).trim();
+                let optionsPart = cleanText.substring(firstOptIndex);
+                let optRegex = /\((a|b|c|d)\)\s*([\s\S]*?)(?=\((a|b|c|d)\)|$)/g;
+                optionsHTML = optionsPart.replace(optRegex, function(match, optKey, optValue) {
+                    return `<label class="option-label" onclick="selectOption(this)"><input type="radio" name="q${qNum}" value="${optKey}"><strong>(${optKey})</strong>&nbsp;${optValue.trim()}</label>`;
+                });
+            }
+            container.innerHTML += `<div class="qa-card" data-qnum="${qNum}"><div class="q-text">${questionText}</div><div class="options-container">${optionsHTML}</div></div>`;
+        });
+    }
+
+    window.selectOption = function(label) {
+        let input = label.querySelector('input');
+        if(input.disabled) return; 
+        input.checked = true;
+        let allLabels = label.parentElement.querySelectorAll('.option-label');
+        allLabels.forEach(l => l.classList.remove('selected-opt'));
+        label.classList.add('selected-opt');
+    };
+
+    // Score & Admin Data Submit Logic
+    window.calculateScore = function() {
+        clearInterval(timerInterval); // Stop timer
+        
+        let score = 0;
+        let total = 0;
+        document.querySelectorAll('.qa-card').forEach(card => {
+            total++;
+            const qNum = card.getAttribute('data-qnum');
+            let correctOpt = mcqAnswers[qNum] ? mcqAnswers[qNum].trim().toLowerCase() : null; 
+            const selectedRadio = card.querySelector('input[type="radio"]:checked');
+            let correctRadio = null;
+            
+            card.querySelectorAll('input[type="radio"]').forEach(r => {
+                if(correctOpt && r.value.trim().toLowerCase() === correctOpt) correctRadio = r;
+                r.disabled = true; 
+            });
+            card.querySelectorAll('.option-label').forEach(l => l.style.cursor = "default");
+
+            if(correctRadio) correctRadio.parentElement.classList.add('correct-opt');
+            if(selectedRadio) {
+                if(correctOpt && selectedRadio.value.trim().toLowerCase() === correctOpt) score++; 
+                else selectedRadio.parentElement.classList.add('wrong-opt');
+            }
+        });
+
+        const finalScore = score + " / " + total;
+        const timeTakenStr = document.getElementById('timer-display').innerText.replace('⏱ ', '');
+        
+        const scoreCard = document.getElementById('score-card');
+        scoreCard.innerHTML = `🏆 आपका स्कोर: ${finalScore}<br>⏱ समय बचा: ${timeTakenStr}`;
+        scoreCard.style.display = 'block';
+        document.getElementById('submit-btn').style.display = 'none'; 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Send Data to Netlify Admin Dashboard
+        const formData = new FormData();
+        formData.append("form-name", "StudentScores");
+        formData.append("Student_Name", currentUser);
+        formData.append("Roll_Number", currentRoll);
+        formData.append("Score", finalScore);
+        formData.append("Time_Taken", (60 - Math.floor(totalTime / 60)) + " mins");
+
+        fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(formData).toString()
+        }).catch((error) => console.log("Form submit error", error));
+    }
+</script>
+</body>
+</html>
